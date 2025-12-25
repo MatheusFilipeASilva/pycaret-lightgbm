@@ -8,7 +8,6 @@ from pycaret.classification import load_model, predict_model
 # Diretório do script (usado para localizar arquivos relativos ao projeto)
 PROJECT_DIR = Path(__file__).resolve().parent
 
-
 def test_run():
     st.write("Insira os seus dados na upbox abaixo. Se não tiver dados para inserir, marque sim na box abaixo para carregar um dataset de exemplo.")
     use_example = st.checkbox("Carregar data-set de exemplo")
@@ -32,7 +31,7 @@ def test_run():
                 st.error(f"Erro ao ler o arquivo enviado: {e}")
     return use_example, df
 
-
+@st.cache_resource
 def coletar_modelo():
     modelo_pickle = PROJECT_DIR/"Tuned_LightGBM"
     return load_model(modelo_pickle)
@@ -42,16 +41,8 @@ def get_predict(modelo, df):
     return predict_model(modelo, data=df)
 
 
-#@st.cache_data
 def main():
-    st.title("Prototipo de Classificação com PyCaret")
-    show_diag = st.checkbox("Mostrar informações de diagnóstico")
-    if show_diag:
-        st.write("CWD:", Path.cwd())
-        st.write("Script dir:", PROJECT_DIR)
-        st.write("Arquivos na pasta do projeto:", [p.name for p in PROJECT_DIR.iterdir()])
-        st.write("Arquivos na CWD:", [p.name for p in Path.cwd().iterdir()])
-
+    st.title("Prototipo PyCaret com Streamlit")
     a, df = test_run()
     if df is not None:
         st.write(df.head())
@@ -81,9 +72,11 @@ def main():
 
     if prever_agora:
         previsoes = get_predict(modelo, df)
-        st.write("O problema talvez esteja aqui, no predict")
         st.write(previsoes)
-
+        st.download_button(label="Download das Previsões em .csv",
+        data=previsoes.to_csv(),
+        file_name="previsoes.csv",
+        mime="application/octet-stream")
 
 if __name__ == "__main__":
     main()
